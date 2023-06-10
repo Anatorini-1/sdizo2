@@ -7,20 +7,36 @@
 #include <iostream>
 #include <fstream>
 using namespace std;
-IncidenceMatrix* GraphFactory::matrixDirectedGraph(int nodes, int density)
+IncidenceMatrix* GraphFactory::matrixGraph(int nodes, int density,bool directional)
 {   
     srand(time(0));
 
-    //In a directed graph, the total number of possible 
-    //edges is equal to nodes*(nodes-1)
-    int maxConnections = nodes * (nodes - 1);
-    int connectionsToMake = maxConnections * density / 100;
-    if (connectionsToMake < nodes - 1) {
-        cout << "The graph of size " << nodes << " and density " << (float)density / 100.0f << "% can not be connected.\n";
-        return nullptr;
+    int maxConnections = 0;
+    int connectionsToMake = 0;
+    if (directional) {
+        //In a directed graph, the total number of possible 
+        //edges is equal to nodes*(nodes-1)
+        maxConnections = nodes * (nodes - 1);
+        connectionsToMake = maxConnections * density / 100;
+        if (connectionsToMake < nodes - 1) {
+            cout << "The graph of size " << nodes << " and density " << (float)density / 100.0f << "% can not be connected.\n";
+            return nullptr;
+        }
     }
 
-    IncidenceMatrix* m = new IncidenceMatrix(connectionsToMake, nodes);
+    else {
+        //In an undirected graph, the total number of possible edges is
+        // nodes*(nodes-1) / 2, alway an integer since either nodes or nodes-1 is divisible by 2, hence so is their product
+        maxConnections = nodes * (nodes - 1) / 2;
+        connectionsToMake = maxConnections * density / 100;
+        if (connectionsToMake < nodes - 1) {
+            cout << "The graph of size " << nodes << " and density " << (float)density / 100.0f << "% can not be connected.\n";
+            return nullptr;
+        }
+    
+    }
+
+    IncidenceMatrix* m = new IncidenceMatrix(connectionsToMake, nodes,directional);
     int connection = 0;
     /*
     Steps to generate a random, connected graph with given density:
@@ -68,16 +84,35 @@ IncidenceMatrix* GraphFactory::matrixDirectedGraph(int nodes, int density)
     return m;
 }
 
-AdjacencyList* GraphFactory::litsDirectedGraph(int nodes, int density)
+AdjacencyList* GraphFactory::litsGraph(int nodes, int density, bool directional)
 {
-    int maxConnections = nodes * (nodes - 1);
-    int connectionsToMake = maxConnections * density / 100;
-    if (connectionsToMake < nodes - 1) {
-        cout << "The graph of size " << nodes << " and density " << (float)density / 100.0f << "% can not be connected.\n";
-        return nullptr;
+    int maxConnections;
+    int connectionsToMake;
+    if (directional) {
+        //In a directed graph, the total number of possible 
+        //edges is equal to nodes*(nodes-1)
+        maxConnections = nodes * (nodes - 1);
+        connectionsToMake = maxConnections * density / 100;
+        if (connectionsToMake < nodes - 1) {
+            cout << "The graph of size " << nodes << " and density " << (float)density / 100.0f << "% can not be connected.\n";
+            return nullptr;
+        }
     }
+
+    else {
+        //In an undirected graph, the total number of possible edges is
+        // nodes*(nodes-1) / 2, alway an integer since either nodes or nodes-1 is divisible by 2, hence so is their product
+        maxConnections = nodes * (nodes - 1) / 2;
+        connectionsToMake = maxConnections * density / 100;
+        if (connectionsToMake < nodes - 1) {
+            cout << "The graph of size " << nodes << " and density " << (float)density / 100.0f << "% can not be connected.\n";
+            return nullptr;
+        }
+
+    }
+    
     srand(time(0));
-    AdjacencyList* l = new AdjacencyList(nodes);
+    AdjacencyList* l = new AdjacencyList(nodes,directional);
     int connection = 0;
     //1
     Array* U = new Array();
@@ -99,7 +134,7 @@ AdjacencyList* GraphFactory::litsDirectedGraph(int nodes, int density)
     while (connection < connectionsToMake) {
         int A = rand() % nodes;
         int B = rand() % nodes;
-
+        if (A == B) continue;
         if (l->getEdge(A, B) != -1) continue;
         l->addEdge(A, B, rand() % 99 + 1);
         connection++;
@@ -149,3 +184,4 @@ AdjacencyList* GraphFactory::loadListGraphFromFIle(std::string filename)
     file.close();
     return l;
 }
+

@@ -7,8 +7,8 @@
 class GraphFactory
 {
 public:
-	static IncidenceMatrix* matrixDirectedGraph(int nodes, int density);
-	static AdjacencyList* litsDirectedGraph(int nodes, int density);
+	static IncidenceMatrix* matrixGraph(int nodes, int density, bool directional);
+	static AdjacencyList* litsGraph(int nodes, int density,bool directional);
 	static IncidenceMatrix* loadMatrixGraphFromFile(std::string filename);
 	static AdjacencyList* loadListGraphFromFIle(std::string filename);
 };

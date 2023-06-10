@@ -8,9 +8,9 @@ class AdjacencyList: public Graph
 {
 
 public:
-	AdjacencyList(int nodes);
+	AdjacencyList(int nodes,bool directional=true);
 	bool addEdge(int from, int to, int weight) override;
-	int getEdge(int from, int to, bool directional = true) override;
+	int getEdge(int from, int to) override;
 	void print() override;
 	DoubleLinkedList* getVertices() override;
 	DoubleLinkedList* getAdjecentVertices(int v, bool directional) override;
@@ -23,5 +23,6 @@ private:
 	ListOfLists* vertices;
 	ListOfLists* weights;
 	int edges;
+	bool directional;
 };
 

@@ -17,7 +17,7 @@ public:
 	};
 
 	virtual bool addEdge(int from, int to, int weight) = 0;
-	virtual int getEdge(int from, int to, bool directional = true) = 0;
+	virtual int getEdge(int from, int to) = 0;
 	virtual void print() = 0;
 	virtual DoubleLinkedList* getVertices() = 0;
 	virtual int verticesCount() = 0;

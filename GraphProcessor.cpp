@@ -34,7 +34,7 @@ IncidenceMatrix* GraphProcessor::PrimMST(IncidenceMatrix* graph)
 	T->forEach([&](int i) {
 		DoubleLinkedList* adj = graph->getAdjecentVertices(i, false);
 		adj->forEach([&](int j) {
-			int weight = graph->getEdge(i, j, false);
+			int weight = graph->getEdge(i, j);
 			vFrom->addLast(i);
 			vTo->addLast(j);
 			vCost->addLast(weight);
@@ -66,7 +66,7 @@ IncidenceMatrix* GraphProcessor::PrimMST(IncidenceMatrix* graph)
 		//cout << vCost->len << ' '; vCost->print(); std::cout << "\n";
 		graph->getAdjecentVertices(to, false)->forEach([&](int j) {
 			if (T->find(j) != -1) return;
-			int weight = graph->getEdge(to, j, false);
+			int weight = graph->getEdge(to, j);
 			vFrom->addLast(to);
 			vTo->addLast(j);
 			vCost->addLast(weight);
@@ -102,7 +102,7 @@ IncidenceMatrix* GraphProcessor::KruskalMST(IncidenceMatrix* g)
 	}
 	while (T->edgesCount() < v - 1 && !q.empty()) {
 		tmp = q.top();
-		if (T->getEdge(tmp.from, tmp.to, false) == -1) {
+		if (T->getEdge(tmp.from, tmp.to) == -1) {
 			T->addEdge(tmp.from, tmp.to, tmp.weight);
 		}
 		q.pop();
@@ -237,7 +237,7 @@ AdjacencyList* GraphProcessor::PrimMST(AdjacencyList* graph)
 {
 	//1
 	DoubleLinkedList* Q = graph->getVertices();
-	AdjacencyList* res = new AdjacencyList(graph->verticesCount());
+	AdjacencyList* res = new AdjacencyList(graph->verticesCount(),false);
 	//2
 	int Vertex = Q->get(0);
 	//3
@@ -251,7 +251,7 @@ AdjacencyList* GraphProcessor::PrimMST(AdjacencyList* graph)
 	T->forEach([&](int i) {
 		DoubleLinkedList* adj = graph->getAdjecentVertices(i, false);
 		adj->forEach([&](int j) {
-			int weight = graph->getEdge(i, j, false);
+			int weight = graph->getEdge(i, j);
 			vFrom->addLast(i);
 			vTo->addLast(j);
 			vCost->addLast(weight);
@@ -280,7 +280,7 @@ AdjacencyList* GraphProcessor::PrimMST(AdjacencyList* graph)
 		vCost->delIndex(edgeIndex);
 		graph->getAdjecentVertices(to, false)->forEach([&](int j) {
 			if (T->find(j) != -1) return;
-			int weight = graph->getEdge(to, j, false);
+			int weight = graph->getEdge(to, j);
 			vFrom->addLast(to);
 			vTo->addLast(j);
 			vCost->addLast(weight);
@@ -313,7 +313,7 @@ AdjacencyList* GraphProcessor::KruskalMST(AdjacencyList* g)
 	}
 	while (T->edgesCount() < v - 1 && !q.empty()) {
 		tmp = q.top();
-		if (T->getEdge(tmp.from, tmp.to, false) == -1) {
+		if (T->getEdge(tmp.from, tmp.to) == -1) {
 			T->addEdge(tmp.from, tmp.to, tmp.weight);
 		}
 		q.pop();
@@ -384,7 +384,57 @@ DoubleLinkedList* GraphProcessor::pathDijkstra(AdjacencyList* g, int from, int t
 
 DoubleLinkedList* GraphProcessor::pathBellmanFord(AdjacencyList* g, int from, int to)
 {
-	return nullptr;
+	//INIT
+	int V = g->verticesCount();
+	int* costs = new int[V];
+	int* predecessors = new int[V];
+	for (int i = 0; i < V; i++) {
+		costs[i] = INT_MAX / 2;
+		predecessors[i] = -1;
+	}
+	costs[from] = 0;
+	Graph::edge* edges = g->getEdges();
+	int E = g->edgesCount();
+	for (int i = 0; i < E; i++) {
+		//cout << edges[i].from << "->" << edges[i].to << ":" << edges[i].weight << endl;
+	}
+	Graph::edge* edge;
+	//Relax edges V-1 times
+	for (int i = 0; i < V; i++) {
+		for (int j = 0; j < E; j++) {
+			edge = edges + j;
+			if (costs[edge->from] + edge->weight < costs[edge->to]) {
+				costs[edge->to] = costs[edge->from] + edge->weight;
+				predecessors[edge->to] = edge->from;
+			}
+		}
+	}
+
+	//Check for negative cycles
+	for (int v = 0; v < V; v++) {
+		int u = predecessors[v];
+		if (u != -1 && costs[u] + g->getEdge(u, v) < costs[v]) {
+			//Negative cycle exists
+			cout << "GRAPH CONTAINS A NEGATIVE CYCLE!" << endl;
+			break;
+		}
+	}
+
+	DoubleLinkedList* res = new DoubleLinkedList();
+	if (costs[to] == 1000) {
+		res->addLast(-1);
+		return res;
+	}
+	int node = to;
+
+	while (node != -1) {
+		res->addFirst(node);
+		node = predecessors[node];
+	}
+
+	delete[] costs;
+	delete[] predecessors;
+	return res;
 }
 
 AdjacencyList* GraphProcessor::maxFlowFordFulkerson(AdjacencyList* g)

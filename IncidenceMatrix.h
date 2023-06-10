@@ -7,10 +7,10 @@ class IncidenceMatrix :
     public Matrix, public Graph
 {
 public:
-    IncidenceMatrix(int connections, int nodes);
+    IncidenceMatrix(int connections, int nodes,bool directional = true);
     ~IncidenceMatrix();
     bool addEdge(int from, int to, int cost) override;
-    int getEdge(int from, int to,bool directional = true) override;
+    int getEdge(int from, int to) override;
     void print() override;
     DoubleLinkedList* getVertices() override;
     DoubleLinkedList* getAdjecentVertices(int v, bool directional) override;
@@ -19,6 +19,6 @@ public:
     edge* getEdges();
 private:
     int connectionCounter;
-
+    bool directional = true;
 };
 
