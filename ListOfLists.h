@@ -10,6 +10,7 @@ public:
 	int getFromList(int list, int index);
 	DoubleLinkedList* getList(int list);
 	void print();
+	int getSize();
 private:
 	int size;
 	DoubleLinkedList** lists;

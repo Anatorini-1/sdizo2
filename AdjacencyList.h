@@ -1,17 +1,27 @@
 #pragma once
 #include "ListOfLists.h"
-
-class AdjacencyList
+#include "Graph.h"
+#include <string>
+#include "DoubleLinkedList.h"
+#include "Array.h"
+class AdjacencyList: public Graph
 {
 
 public:
 	AdjacencyList(int nodes);
-	void addEdge(int from, int to, int weight);
-	int getEdge(int from, int to);
-	void print();
+	bool addEdge(int from, int to, int weight) override;
+	int getEdge(int from, int to, bool directional = true) override;
+	void print() override;
+	DoubleLinkedList* getVertices() override;
+	DoubleLinkedList* getAdjecentVertices(int v, bool directional) override;
+	int verticesCount();
+
+	int edgesCount();
+	edge* getEdges();
 private:
 	int size;
 	ListOfLists* vertices;
 	ListOfLists* weights;
+	int edges;
 };
 

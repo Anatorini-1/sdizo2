@@ -45,3 +45,8 @@ void ListOfLists::print()
         std::cout << std::endl;
     }
 }
+
+int ListOfLists::getSize()
+{
+    return size;
+}

@@ -24,10 +24,14 @@ public:
     int find(int val);
     int operator[](int index);
     void loadFromFile(std::string path);
+    int findMin();
+    int findMinIndex();
     bool isEmpty();
+    int getSize();
     Array();
     ~Array();
     void print();
+    void copy(Array* from);
 };
 
 

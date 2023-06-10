@@ -76,7 +76,7 @@ void DoubleLinkedList::delFirst() {
         Node* temp = head;
         head = head->next;
         delete temp;
-        len = 0;
+        len--;
     }
 
 }
@@ -100,21 +100,29 @@ void DoubleLinkedList::delLast() {
 }
 
 void DoubleLinkedList::delIndex(int index) {
-    if (head == 0) {
+    if (head == nullptr || index > len) {
         return;
     }
+    if (index == 0) return delFirst();
+    if (index == len - 1) return delLast();
+
     Node* temp = head;
     for (int i = 0; i < index; i++) {
-        if (temp == 0) {
-            break;
+        if (temp == nullptr) {
+            return;
         }
         temp = temp->next;
     }
-    temp->prev->next = temp->next;
-    temp->next->prev = temp->prev;
+
+
+    if (temp->prev != nullptr) {
+        temp->prev->next = temp->next;
+    }
+    if (temp->next != nullptr) {
+         temp->next->prev = temp->prev;
+    }
     len--;
     delete temp;
-
 }
 
 void DoubleLinkedList::delValue(int value) {
@@ -139,7 +147,7 @@ int DoubleLinkedList::find(int val) {
 
 int DoubleLinkedList::get(int index)
 {
-    if (index >= len) {
+    if (index >= len || index < 0) {
         std::cout << "Attempting to read index [" << index << "] from list of size [" << len << "]. Returning -1.\n";
         return -1;
     };
@@ -177,9 +185,58 @@ bool DoubleLinkedList::isEmpty()
     return len == 0;
 }
 
+int DoubleLinkedList::findMin()
+{
+    Node* temp = head;
+    if (temp == 0) return -1;
+    int min = INT_MAX;
+    while (temp != 0) {
+        if (temp->value < min) min = temp->value;
+        temp = temp->next;
+    }
+    return min;
+}
+
+int DoubleLinkedList::findMinIndex()
+{
+    Node* temp = head;
+    if (temp == 0) return -1;
+    int min = INT_MAX;
+    int minIndex = -1;
+    int index = 0;
+    while (temp != 0) {
+        if (temp->value < min) {
+            min = temp->value;
+            minIndex = index;
+        }
+        temp = temp->next;
+        index++;
+    }
+    return minIndex;
+}
+
+void DoubleLinkedList::forEach(std::function<void(int)>&& lambda)
+{
+    Node* tmp = head;
+    while (tmp != 0) {
+        lambda(tmp->value);
+        tmp = tmp->next;
+    }
+}
+
 int DoubleLinkedList::getSize()
 {
     return len;
+}
+
+void DoubleLinkedList::copy(DoubleLinkedList* from)
+{
+    Node* tmp = from->head;
+    Node* newNode;
+    while (tmp != 0) {
+        this->addLast(tmp->value);
+        tmp = tmp->next;
+    }
 }
 
 void DoubleLinkedList::loadFromFile(std::string path) {

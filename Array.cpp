@@ -123,6 +123,17 @@ void Array::print() {
     std::cout << ']' << std::endl;
 }
 
+int::Array::getSize() {
+    return len;
+}
+
+void Array::copy(Array* from)
+{
+    for (int i = 0; i < from->getSize(); i++) {
+        this->addLast(from->get(i));
+    }
+}
+
 void Array::fill(int size, int val) {
     delete[] data;
     data = new int[size];
@@ -156,6 +167,28 @@ void Array::loadFromFile(std::string path) {
     }
     file.close();
 
+}
+
+int Array::findMin()
+{
+    int min = INT32_MAX;
+    for (int i = 0; i < len; i++) {
+        if (data[i] < min) min = data[i];
+    }
+    return min;
+}
+
+int Array::findMinIndex()
+{
+    int min = INT32_MAX;
+    int minIndex = -1;
+    for (int i = 0; i < len; i++) {
+        if (data[i] < min) {
+            min = data[i];
+            minIndex = i;
+        }
+    }
+    return minIndex;
 }
 
 bool Array::isEmpty()
