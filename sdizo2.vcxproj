@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClCompile Include="AdjacencyList.cpp" />
     <ClCompile Include="Array.cpp" />
+    <ClCompile Include="CLI.cpp" />
     <ClCompile Include="DoubleLinkedList.cpp" />
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="GraphFactory.cpp" />
@@ -150,10 +151,12 @@
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="MinHeap.cpp" />
     <ClCompile Include="sdizo2.cpp" />
+    <ClCompile Include="Tester.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdjacencyList.h" />
     <ClInclude Include="Array.h" />
+    <ClInclude Include="CLI.h" />
     <ClInclude Include="DoubleLinkedList.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="GraphFactory.h" />
@@ -162,6 +165,7 @@
     <ClInclude Include="ListOfLists.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="MinHeap.h" />
+    <ClInclude Include="Tester.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="graph.txt" />

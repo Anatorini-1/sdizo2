@@ -9,6 +9,7 @@ class AdjacencyList: public Graph
 
 public:
 	AdjacencyList(int nodes,bool directional=true);
+	~AdjacencyList();
 	bool addEdge(int from, int to, int weight) override;
 	int getEdge(int from, int to) override;
 	void print() override;

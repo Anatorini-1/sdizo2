@@ -9,6 +9,7 @@ IncidenceMatrix::IncidenceMatrix(int connections, int nodes, bool directional) :
 
 IncidenceMatrix::~IncidenceMatrix()
 {
+    delete arr;
 }
 
 bool IncidenceMatrix::addEdge(int from, int to, int cost)
@@ -107,29 +108,37 @@ IncidenceMatrix::edge* IncidenceMatrix::getEdges()
         }
         cout << endl;
     }*/
-    
-
-
     edge* ret = new edge[connectionCounter];
     //cout << connectionCounter << endl;
     int tmp = 0;
+    int from = -1;
+    int to = -1;
     int weight = -1;
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < rows; j++)
-        {
-            if (i == j) 
-                continue;
-            weight = getEdge(i, j);
-            if (weight != -1) {
-                ret[tmp++] = { i,j,weight };
-                //cout << tmp << " " << i << "->" << j << ":" << weight << endl;
+    int tmp2 = -1;
+    for (int i = 0; i < cols; i++) {
+        from = -1;
+        to = -1;
+        weight = -1;
+        tmp2 = -1;
+        for (int j = 0; j < rows; j++) {
+            tmp2 = get(i, j);
+            if (tmp2 == -1) {
+                to = j;
             }
-           
-
-             
+            if (tmp2 > 0){
+                if (!directional && from != -1)
+                    to = j;
+                else
+                    from = j;
+                weight = tmp2;
+            }
+            if (from != -1 && to != -1) {
+                ret[tmp++] = { from,to,weight };
+                break;
+            }
         }
-    }
 
+    }
     return ret;
 }
 

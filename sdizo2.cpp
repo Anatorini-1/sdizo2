@@ -5,22 +5,22 @@
 #include "ListOfLists.h"
 #include "GraphProcessor.h"
 #include <cstdio>
+#include "Tester.h"
+#include "MinHeap.h"
+#include "CLI.h"
+/*#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+*/
+
 using namespace std;
 
-void tmp(DoubleLinkedList::Node* t) {
-	cout << t->value;
-}
+
 
 int main()
 {
+	CLI cli;
+	cli.run();
 	
-	GraphFactory gf;
-	GraphProcessor gp;
-	string filename = "graph.txt";
-	auto* g = gf.litsGraph(5, 100,true);
-	g->print();
-	gp.pathBellmanFord(g, 2, 3)->print();
-
-
 }
 

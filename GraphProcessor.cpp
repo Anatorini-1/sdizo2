@@ -3,6 +3,8 @@
 #include "DoubleLinkedList.h"
 #include "Graph.h"
 #include <iomanip>
+#include "Tester.h"
+#include "MinHeap.h"
 using namespace std;
 
 IncidenceMatrix* GraphProcessor::PrimMST(IncidenceMatrix* graph)
@@ -20,63 +22,51 @@ IncidenceMatrix* GraphProcessor::PrimMST(IncidenceMatrix* graph)
 	*/
 	//1
 	DoubleLinkedList* Q = graph->getVertices();
-	IncidenceMatrix* res = new IncidenceMatrix(graph->verticesCount() - 1, graph->verticesCount());
+	IncidenceMatrix* res = new IncidenceMatrix(graph->verticesCount() - 1, graph->verticesCount(),false);
 	//2
 	int Vertex = Q->get(0);
 	//3
 	DoubleLinkedList* T = new DoubleLinkedList();
 	T->addFirst(Vertex);
 	Q->delFirst();
-	DoubleLinkedList* vFrom = new DoubleLinkedList();
-	DoubleLinkedList* vTo = new DoubleLinkedList();
-	DoubleLinkedList* vCost = new DoubleLinkedList();
+	MinHeap* q = new MinHeap(graph->verticesCount()*(graph->verticesCount()-1)/2);
+	
 	// 4 
 	T->forEach([&](int i) {
 		DoubleLinkedList* adj = graph->getAdjecentVertices(i, false);
 		adj->forEach([&](int j) {
 			int weight = graph->getEdge(i, j);
-			vFrom->addLast(i);
-			vTo->addLast(j);
-			vCost->addLast(weight);
+			q->push({ i, j, weight });
 			});
+		delete adj;
 		});
 	while (!Q->isEmpty()) {
-		/*cout << vFrom->len << ' ';  vFrom->print(); std::cout << "\n";
-		cout << vTo->len << ' '; vTo->print(); std::cout << "\n";
-		cout << vCost->len << ' '; vCost->print(); std::cout << "\n";*/
-		int edgeIndex = vCost->findMinIndex();
-		int to = vTo->get(edgeIndex);
+		int to = q->top().to;
 		if (T->find(to) != -1) {
-			vCost->delIndex(edgeIndex);
-			vFrom->delIndex(edgeIndex);
-			vTo->delIndex(edgeIndex);
+			q->pop();
 			continue;
 		}
-		int cost = vCost->get(edgeIndex);
-		int from = vFrom->get(edgeIndex);
+		int cost = q->top().weight;
+		int from = q->top().from;
 		//cout << "Adding " << from << " to " << to << " cost " << cost << endl;
 		Q->delValue(to);
 		T->addLast(to);
 		res->addEdge(from, to, cost);
-		vFrom->delIndex(edgeIndex);
-		vTo->delIndex(edgeIndex);
-		vCost->delIndex(edgeIndex);
+		q->pop();
 		//cout << vFrom->len << ' ';  vFrom->print(); std::cout << "\n";
 		//cout << vTo->len << ' '; vTo->print(); std::cout << "\n";
 		//cout << vCost->len << ' '; vCost->print(); std::cout << "\n";
-		graph->getAdjecentVertices(to, false)->forEach([&](int j) {
+		auto* ll = graph->getAdjecentVertices(to, false);
+		ll->forEach([&](int j) {
 			if (T->find(j) != -1) return;
 			int weight = graph->getEdge(to, j);
-			vFrom->addLast(to);
-			vTo->addLast(j);
-			vCost->addLast(weight);
-		});
+			q->push({ to, j, weight });
+			});
+		delete ll;
 	}
-
-
-
-
-
+	delete q;
+	delete Q;
+	delete T;
 	return res;
 
 }
@@ -84,42 +74,85 @@ IncidenceMatrix* GraphProcessor::PrimMST(IncidenceMatrix* graph)
 IncidenceMatrix* GraphProcessor::KruskalMST(IncidenceMatrix* g)
 {
 	//Assuming the graph is connected, wouldnt work otherwise.
-	struct compare {
-		bool operator()(const Graph::edge e1, const Graph::edge e2) {
-			return e1.weight > e2.weight;
-		}
-	};
-
-
-	priority_queue<Graph::edge,vector<Graph::edge>,compare> q;
 	int v = g->verticesCount();
-	IncidenceMatrix* T = new IncidenceMatrix(v - 1, v);
+	IncidenceMatrix* T = new IncidenceMatrix(v - 1, v,false);
 	Graph::edge *edges = g->getEdges();
 	Graph::edge tmp;
 	int e = g->edgesCount();
+	MinHeap* q = new MinHeap(e);
 	for (int i = 0; i < e; i++) {
-		q.push(edges[i]);
+		q->push(edges[i]);
+		//cout << q->top().from << " " << q->top().to << " " << q->top().weight << endl;
 	}
-	while (T->edgesCount() < v - 1 && !q.empty()) {
-		tmp = q.top();
+	while (T->edgesCount() < v - 1 && !q->empty()) {
+		tmp = q->top();
 		if (T->getEdge(tmp.from, tmp.to) == -1) {
 			T->addEdge(tmp.from, tmp.to, tmp.weight);
 		}
-		q.pop();
+		q->pop();
 	}
+	delete q;
 	return T;
 }
 
 DoubleLinkedList* GraphProcessor::pathDijkstra(IncidenceMatrix* g, int from, int to)
 {
 	int v = g->verticesCount();
+	int* distance = new int[v];
+	int* predecessor = new int[v];
+	int* visited = new int[v];
+	int tmp = 0;
+	for (int i = 0; i < v; i++) {
+		distance[i] = INT_MAX / 2;
+		predecessor[i] = -1;
+		visited[i] = false;
+	}
+	distance[from] = 0;
+	MinHeap* vQueue = new MinHeap(5*v);
+	vQueue->push({ from,0,distance[from]});
+	int current = -1;
+	while (!vQueue->empty()) {
+		current = vQueue->top().from;
+		if (!visited[current]) {
+			//cout << "Current: " << current << endl;
+			auto* adj = g->getAdjecentVertices(current, true);
+			while (!adj->isEmpty()) {
+
+				if (distance[adj->get(0)] > distance[current] + g->getEdge(current, adj->get(0))) {
+					distance[adj->get(0)] = distance[current] + g->getEdge(current, adj->get(0));
+					predecessor[adj->get(0)] = current;
+					vQueue->push({ adj->get(0), 0, distance[adj->get(0)] });
+				}
+				adj->delFirst();
+			}
+			visited[current] = true;
+		}
+		
+		vQueue->pop();
+
+	}
+	
+	DoubleLinkedList* res = new DoubleLinkedList();
+	int node = to;
+	while (node != -1) {
+		if (distance[node] !=INT_MAX / 2) {
+			res->addFirst(node);
+			node = predecessor[node];
+			//cout << node << endl;
+		}
+		else node = -1;
+	}
+	return res;
+
+
+	/*int v = g->verticesCount();
 	int* costs = new int[v];
 	int* predecessors = new int[v];
 	bool* visited = new bool[v];
 	int visitedCount = 0;
 	int currentNode = from;
 	for (int i = 0; i < v; i++) {
-		costs[i] = 1000;
+		costs[i] = INT_MAX/2;
 		predecessors[i] = -1;
 		visited[i] = false;
 	}
@@ -127,12 +160,12 @@ DoubleLinkedList* GraphProcessor::pathDijkstra(IncidenceMatrix* g, int from, int
 	/*for (int k = 0; k < v; k++) {
 		printf("%10i", k);
 	}
-	*/
+	
 	while (visitedCount < v) {
 		/*cout << endl;
 		for (int k = 0; k < v; k++) {
 			printf("%5i/%-5i ", costs[k], predecessors[k]);
-		}*/
+		}
 		for (int i = 0; i < v; i++) {
 			if (visited[i]) continue;
 			if (currentNode == -1 || costs[i] < costs[currentNode]) {
@@ -155,26 +188,29 @@ DoubleLinkedList* GraphProcessor::pathDijkstra(IncidenceMatrix* g, int from, int
 	}
 
 	DoubleLinkedList* res = new DoubleLinkedList();
-	if (costs[to] == 1000) {
+	if (costs[to] == INT_MAX/2) {
 		res->addLast(-1);
 		return res;
 	}
 	int node = to;
-	while (node != -1) {
+	while (node > 0) {
 		res->addFirst(node);
-		node = predecessors[node];
+		if (node < v) {
+			node = predecessors[node];
+		}
+		else node = -1;
 	}
 
 	delete[] costs;
 	delete[] predecessors;
 	delete[] visited;
 	return res;
-
+	*/
 }
 
 DoubleLinkedList* GraphProcessor::pathBellmanFord(IncidenceMatrix* g, int from, int to)
 {
-
+	
 	//INIT
 	int V = g->verticesCount();
 	int* costs = new int[V];
@@ -186,11 +222,9 @@ DoubleLinkedList* GraphProcessor::pathBellmanFord(IncidenceMatrix* g, int from, 
 	costs[from] = 0;
 	Graph::edge* edges = g->getEdges();
 	int E = g->edgesCount();
-	for (int i = 0; i < E; i++) {
-		//cout << edges[i].from << "->" << edges[i].to << ":" << edges[i].weight << endl;
-	}
 	Graph::edge* edge;
 	//Relax edges V-1 times
+	
 	for (int i = 0; i < V; i++) {
 		for (int j = 0; j < E; j++) {
 			edge = edges + j;
@@ -200,8 +234,13 @@ DoubleLinkedList* GraphProcessor::pathBellmanFord(IncidenceMatrix* g, int from, 
 			}
 		}
 	}
+	
 
 	//Check for negative cycles
+	//As the problem description states there will be
+	// no edges of negative weights, this can be skipped
+
+	/*
 	for (int v = 0; v < V; v++) {
 		int u = predecessors[v];
 		if (u != -1 && costs[u] + g->getEdge(u, v) < costs[v]) {
@@ -210,19 +249,22 @@ DoubleLinkedList* GraphProcessor::pathBellmanFord(IncidenceMatrix* g, int from, 
 			break;
 		}
 	}
+	
+	t = t1->getCounter() - t;
+	cout << "Stupid loop: " << t << endl;
+	*/
 
 	DoubleLinkedList* res = new DoubleLinkedList();
-	if (costs[to] == 1000) {
+	if (costs[to] == INT_MAX/2) {
 		res->addLast(-1);
 		return res;
 	}
 	int node = to;
-	
+	int tmp = 0;
 	while (node != -1) {
 		res->addFirst(node);
 		node = predecessors[node];
 	}
-
 	delete[] costs;
 	delete[] predecessors;
 	return res;
@@ -235,7 +277,6 @@ IncidenceMatrix* GraphProcessor::maxFlowFordFulkerson(IncidenceMatrix* g)
 
 AdjacencyList* GraphProcessor::PrimMST(AdjacencyList* graph)
 {
-	//1
 	DoubleLinkedList* Q = graph->getVertices();
 	AdjacencyList* res = new AdjacencyList(graph->verticesCount(),false);
 	//2
@@ -244,79 +285,64 @@ AdjacencyList* GraphProcessor::PrimMST(AdjacencyList* graph)
 	DoubleLinkedList* T = new DoubleLinkedList();
 	T->addFirst(Vertex);
 	Q->delFirst();
-	DoubleLinkedList* vFrom = new DoubleLinkedList();
-	DoubleLinkedList* vTo = new DoubleLinkedList();
-	DoubleLinkedList* vCost = new DoubleLinkedList();
+	MinHeap* q = new MinHeap(graph->verticesCount() * (graph->verticesCount() - 1) / 2);
+	//The max amount of verticies adjecent to a single vertex is v-1
 	// 4 
 	T->forEach([&](int i) {
 		DoubleLinkedList* adj = graph->getAdjecentVertices(i, false);
 		adj->forEach([&](int j) {
 			int weight = graph->getEdge(i, j);
-			vFrom->addLast(i);
-			vTo->addLast(j);
-			vCost->addLast(weight);
+			q->push({ i, j, weight });
 			});
 		});
 	while (!Q->isEmpty()) {
-		/*cout << vFrom->len << ' ';  vFrom->print(); std::cout << "\n";
-		cout << vTo->len << ' '; vTo->print(); std::cout << "\n";
-		cout << vCost->len << ' '; vCost->print(); std::cout << "\n";*/
-		int edgeIndex = vCost->findMinIndex();
-		int to = vTo->get(edgeIndex);
+		int to = q->top().to;
 		if (T->find(to) != -1) {
-			vCost->delIndex(edgeIndex);
-			vFrom->delIndex(edgeIndex);
-			vTo->delIndex(edgeIndex);
+			q->pop();
 			continue;
 		}
-		int cost = vCost->get(edgeIndex);
-		int from = vFrom->get(edgeIndex);
+		int cost = q->top().weight;
+		int from = q->top().from;
 		//cout << "Adding " << from << " to " << to << " cost " << cost << endl;
 		Q->delValue(to);
 		T->addLast(to);
 		res->addEdge(from, to, cost);
-		vFrom->delIndex(edgeIndex);
-		vTo->delIndex(edgeIndex);
-		vCost->delIndex(edgeIndex);
-		graph->getAdjecentVertices(to, false)->forEach([&](int j) {
+		q->pop();
+		//cout << vFrom->len << ' ';  vFrom->print(); std::cout << "\n";
+		//cout << vTo->len << ' '; vTo->print(); std::cout << "\n";
+		//cout << vCost->len << ' '; vCost->print(); std::cout << "\n";
+		auto* ll = graph->getAdjecentVertices(to, false);
+		ll->forEach([&](int j) {
 			if (T->find(j) != -1) return;
 			int weight = graph->getEdge(to, j);
-			vFrom->addLast(to);
-			vTo->addLast(j);
-			vCost->addLast(weight);
+			q->push({ to, j, weight });
 			});
+		delete ll;
 	}
-
-
-
-
-
+	delete q;
+	delete T;
+	delete Q;
 	return res;
 }
 
 AdjacencyList* GraphProcessor::KruskalMST(AdjacencyList* g)
 {
 	//Assuming the graph is connected, wouldnt work otherwise.
-	struct compare {
-		bool operator()(const Graph::edge e1, const Graph::edge e2) {
-			return e1.weight > e2.weight;
-		}
-	};
-	priority_queue<Graph::edge, vector<Graph::edge>, compare> q;
+	MinHeap* q = new MinHeap(g->edgesCount());
 	int v = g->verticesCount();
-	AdjacencyList* T = new AdjacencyList(v);
+	AdjacencyList* T = new AdjacencyList(v,false);
 	Graph::edge* edges = g->getEdges();
 	int e = g->edgesCount();
 	Graph::edge tmp;
 	for (int i = 0; i < e; i++) {
-		q.push(edges[i]);
+		q->push(edges[i]);
 	}
-	while (T->edgesCount() < v - 1 && !q.empty()) {
-		tmp = q.top();
+	while (T->edgesCount() < v - 1 && !q->empty()) {
+		tmp = q->top();
 		if (T->getEdge(tmp.from, tmp.to) == -1) {
 			T->addEdge(tmp.from, tmp.to, tmp.weight);
 		}
-		q.pop();
+		q->pop();
 	}
 	return T;
 }
@@ -324,62 +350,57 @@ AdjacencyList* GraphProcessor::KruskalMST(AdjacencyList* g)
 DoubleLinkedList* GraphProcessor::pathDijkstra(AdjacencyList* g, int from, int to)
 {
 	int v = g->verticesCount();
-	int* costs = new int[v];
-	int* predecessors = new int[v];
-	bool* visited = new bool[v];
-	int visitedCount = 0;
-	int currentNode = from;
+	int* distance = new int[v];
+	int* predecessor = new int[v];
+	int* visited = new int[v];
+	int tmp = 0;
 	for (int i = 0; i < v; i++) {
-		costs[i] = 1000;
-		predecessors[i] = -1;
+		distance[i] = INT_MAX / 2;
+		predecessor[i] = -1;
 		visited[i] = false;
 	}
-	costs[from] = 0;
-	/*for (int k = 0; k < v; k++) {
-		printf("%10i", k);
-	}
-	*/
-	while (visitedCount < v) {
-		/*cout << endl;
-		for (int k = 0; k < v; k++) {
-			printf("%5i/%-5i ", costs[k], predecessors[k]);
-		}*/
-		for (int i = 0; i < v; i++) {
-			if (visited[i]) continue;
-			if (currentNode == -1 || costs[i] < costs[currentNode]) {
-				currentNode = i;
+	distance[from] = 0;
+	MinHeap* vQueue = new MinHeap(5 * v);
+	vQueue->push({ from,0,distance[from] });
+	int current = -1;
+	while (!vQueue->empty()) {
+
+		current = vQueue->top().from;
+		if (!visited[current]) {
+			//cout << "Current: " << current << endl;
+			auto* adj = g->getAdjecentVertices(current, true);
+			while (!adj->isEmpty()) {
+
+				if (distance[adj->get(0)] > distance[current] + g->getEdge(current, adj->get(0))) {
+					distance[adj->get(0)] = distance[current] + g->getEdge(current, adj->get(0));
+					predecessor[adj->get(0)] = current;
+					vQueue->push({ adj->get(0), 0, distance[adj->get(0)] });
+				}
+				adj->delFirst();
 			}
+			visited[current] = true;
 		}
-		if (currentNode == -1) break;
-		//cout << "Current node: " << currentNode << endl;
-		visited[currentNode] = true;
-		for (int i = 0; i < v; i++) {
-			if (i == currentNode || i == from) continue;
-			int cost = g->getEdge(currentNode, i) + costs[currentNode];
-			if (cost != (costs[currentNode] - 1) && costs[i] > cost) {
-				costs[i] = cost;
-				predecessors[i] = currentNode;
-			}
-		}
-		currentNode = -1;
-		visitedCount++;
+
+		vQueue->pop();
+
 	}
 
 	DoubleLinkedList* res = new DoubleLinkedList();
-	if (costs[to] == 1000) {
-		res->addLast(-1);
-		return res;
-	}
 	int node = to;
 	while (node != -1) {
-		res->addFirst(node);
-		node = predecessors[node];
+		if (distance[node] != INT_MAX / 2) {
+			res->addFirst(node);
+			node = predecessor[node];
+			//cout << node << endl;
+		}
+		else node = -1;
 	}
-
-	delete[] costs;
-	delete[] predecessors;
+	delete[] distance;
+	delete[] predecessor;
 	delete[] visited;
+	delete vQueue;
 	return res;
+
 }
 
 DoubleLinkedList* GraphProcessor::pathBellmanFord(AdjacencyList* g, int from, int to)

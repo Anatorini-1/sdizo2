@@ -84,7 +84,7 @@ IncidenceMatrix* GraphFactory::matrixGraph(int nodes, int density,bool direction
     return m;
 }
 
-AdjacencyList* GraphFactory::litsGraph(int nodes, int density, bool directional)
+AdjacencyList* GraphFactory::listGraph(int nodes, int density, bool directional)
 {
     int maxConnections;
     int connectionsToMake;

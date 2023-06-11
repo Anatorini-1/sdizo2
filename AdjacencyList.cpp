@@ -11,6 +11,12 @@ AdjacencyList::AdjacencyList(int nodes,bool directional)
     this->directional = directional;
 }
 
+AdjacencyList::~AdjacencyList()
+{
+    delete vertices;
+    delete weights;
+}
+
 bool AdjacencyList::addEdge(int from, int to, int weight)
 {
     if (from == to) {
