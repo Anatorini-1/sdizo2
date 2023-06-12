@@ -55,7 +55,6 @@ void CLI::run()
 			cin >> d;
 			cout << "Directed: [true/false]: ";
 			cin >> str;
-
 			graph = gf.matrixGraph(v, d, str == "true");
 			cout << "\nMatrix Generated\n";
 			graphType = MATRIX;
@@ -71,7 +70,7 @@ void CLI::run()
 			cout << "Directed: [true/false]: ";
 			cin >> str;
 			graph = gf.listGraph(v, d, str == "true");
-			cout << "\nMatrix Generated\n";
+			cout << "\List Generated\n";
 			graphType = LIST;
 			break;
 		case 5: //Prim
@@ -111,6 +110,10 @@ void CLI::run()
 			cout << "\nTo: ";
 			cin >> to;
 			cout << endl;
+			if (from >= graph->verticesCount() || to >= graph->verticesCount()) {
+				cout << "Out of range\n";
+				break;
+			}
 			if (graphType == MATRIX) {
 				gp.pathDijkstra((IncidenceMatrix*)graph, from, to)->print();
 			}
@@ -128,6 +131,10 @@ void CLI::run()
 			cout << "\nTo: ";
 			cin >> to;
 			cout << endl;
+			if (from >= graph->verticesCount() || to >= graph->verticesCount()) {
+				cout << "Out of range\n";
+				break;
+			}
 			if (graphType == MATRIX) {
 				gp.pathBellmanFord((IncidenceMatrix*)graph, from, to)->print();
 			}

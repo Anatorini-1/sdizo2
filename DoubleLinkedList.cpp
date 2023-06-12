@@ -175,7 +175,8 @@ DoubleLinkedList::~DoubleLinkedList() {
 void DoubleLinkedList::print() {
     Node* temp = head;
     while (temp != 0) {
-        std::cout << temp->value << " ";
+        std::cout <<"(" << temp->value << ")";
+        if (temp->next != 0) std::cout << "->";
         temp = temp->next;
     }
 }

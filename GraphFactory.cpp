@@ -150,11 +150,14 @@ IncidenceMatrix* GraphFactory::loadMatrixGraphFromFile(std::string filename){
         cout << "Failed to open file \"" << filename << "\"\n";
         return nullptr;
     }
+    string d;
+    cout << "Directional [true/false]: ";
+    cin >> d;
     int edges, vertices;
     int from, to, weight;
     file >> edges;
     file >> vertices;
-    IncidenceMatrix* m = new IncidenceMatrix(edges, vertices);
+    IncidenceMatrix* m = new IncidenceMatrix(edges, vertices,d == "true");
     while (edges) {
         file >> from >> to >> weight;
         m->addEdge(from, to, weight);
@@ -173,9 +176,12 @@ AdjacencyList* GraphFactory::loadListGraphFromFIle(std::string filename)
     }
     int edges, vertices;
     int from, to, weight;
+    string d;
+    cout << "Directional [true/false]: ";
+    cin >> d;
     file >> edges;
     file >> vertices;
-    AdjacencyList* l = new AdjacencyList(vertices);
+    AdjacencyList* l = new AdjacencyList(vertices,d=="true");
     while (edges) {
         file >> from >> to >> weight;
         l->addEdge(from, to, weight);

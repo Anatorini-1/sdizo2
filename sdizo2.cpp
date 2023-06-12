@@ -19,8 +19,8 @@ using namespace std;
 
 int main()
 {
-	CLI cli;
-	cli.run();
-	
+	CLI* c1 = new CLI();
+	c1->run();
+	delete c1;
 }
 

@@ -23,6 +23,7 @@ IncidenceMatrix* GraphProcessor::PrimMST(IncidenceMatrix* graph)
 	//1
 	DoubleLinkedList* Q = graph->getVertices();
 	IncidenceMatrix* res = new IncidenceMatrix(graph->verticesCount() - 1, graph->verticesCount(),false);
+	int totalcost = 0;
 	//2
 	int Vertex = Q->get(0);
 	//3
@@ -52,6 +53,7 @@ IncidenceMatrix* GraphProcessor::PrimMST(IncidenceMatrix* graph)
 		Q->delValue(to);
 		T->addLast(to);
 		res->addEdge(from, to, cost);
+		totalcost += cost;
 		q->pop();
 		//cout << vFrom->len << ' ';  vFrom->print(); std::cout << "\n";
 		//cout << vTo->len << ' '; vTo->print(); std::cout << "\n";
@@ -67,6 +69,7 @@ IncidenceMatrix* GraphProcessor::PrimMST(IncidenceMatrix* graph)
 	delete q;
 	delete Q;
 	delete T;
+	cout << "Total MST cost: " << totalcost<<endl;
 	return res;
 
 }
@@ -78,6 +81,11 @@ IncidenceMatrix* GraphProcessor::KruskalMST(IncidenceMatrix* g)
 	IncidenceMatrix* T = new IncidenceMatrix(v - 1, v,false);
 	Graph::edge *edges = g->getEdges();
 	Graph::edge tmp;
+	int* treeID = new int[v];
+	for (int i = 0; i < v; i++) {
+		treeID[i] = i;
+	}
+	int totalcost = 0;
 	int e = g->edgesCount();
 	MinHeap* q = new MinHeap(e);
 	for (int i = 0; i < e; i++) {
@@ -86,12 +94,24 @@ IncidenceMatrix* GraphProcessor::KruskalMST(IncidenceMatrix* g)
 	}
 	while (T->edgesCount() < v - 1 && !q->empty()) {
 		tmp = q->top();
-		if (T->getEdge(tmp.from, tmp.to) == -1) {
+		if (treeID[tmp.from] != treeID[tmp.to]) {
+			//cout << tmp.from << " " << tmp.to  << " " <<  tmp.weight<< endl;
 			T->addEdge(tmp.from, tmp.to, tmp.weight);
+			for (int i = 0; i < v; i++) {
+				if (i == tmp.to) continue;
+				if (treeID[i] == treeID[tmp.to]) {
+					//cout << "treeID[" << i << "] " << treeID[i] << "->" << treeID[tmp.from] << endl;;
+					treeID[i] = treeID[tmp.from];
+				}
+			}
+			treeID[tmp.to] = treeID[tmp.from];
+			totalcost += tmp.weight;
 		}
 		q->pop();
 	}
 	delete q;
+	delete[] treeID;
+	cout << "Total MST cost: " << totalcost << endl;
 	return T;
 }
 
@@ -127,13 +147,12 @@ DoubleLinkedList* GraphProcessor::pathDijkstra(IncidenceMatrix* g, int from, int
 			}
 			visited[current] = true;
 		}
-		
 		vQueue->pop();
-
 	}
 	
 	DoubleLinkedList* res = new DoubleLinkedList();
 	int node = to;
+	
 	while (node != -1) {
 		if (distance[node] !=INT_MAX / 2) {
 			res->addFirst(node);
@@ -142,6 +161,7 @@ DoubleLinkedList* GraphProcessor::pathDijkstra(IncidenceMatrix* g, int from, int
 		}
 		else node = -1;
 	}
+	cout << "Total cost of a path: " << distance[to] << endl;
 	return res;
 
 
@@ -265,6 +285,7 @@ DoubleLinkedList* GraphProcessor::pathBellmanFord(IncidenceMatrix* g, int from, 
 		res->addFirst(node);
 		node = predecessors[node];
 	}
+	cout << "Total cost of a path: " << costs[to] << endl;
 	delete[] costs;
 	delete[] predecessors;
 	return res;
@@ -280,6 +301,7 @@ AdjacencyList* GraphProcessor::PrimMST(AdjacencyList* graph)
 	DoubleLinkedList* Q = graph->getVertices();
 	AdjacencyList* res = new AdjacencyList(graph->verticesCount(),false);
 	//2
+	int totalcost = 0;
 	int Vertex = Q->get(0);
 	//3
 	DoubleLinkedList* T = new DoubleLinkedList();
@@ -307,6 +329,7 @@ AdjacencyList* GraphProcessor::PrimMST(AdjacencyList* graph)
 		Q->delValue(to);
 		T->addLast(to);
 		res->addEdge(from, to, cost);
+		totalcost += cost;
 		q->pop();
 		//cout << vFrom->len << ' ';  vFrom->print(); std::cout << "\n";
 		//cout << vTo->len << ' '; vTo->print(); std::cout << "\n";
@@ -322,28 +345,48 @@ AdjacencyList* GraphProcessor::PrimMST(AdjacencyList* graph)
 	delete q;
 	delete T;
 	delete Q;
+	cout << "total cost of MST: " << totalcost << endl;
 	return res;
 }
 
 AdjacencyList* GraphProcessor::KruskalMST(AdjacencyList* g)
 {
 	//Assuming the graph is connected, wouldnt work otherwise.
-	MinHeap* q = new MinHeap(g->edgesCount());
 	int v = g->verticesCount();
-	AdjacencyList* T = new AdjacencyList(v,false);
+	AdjacencyList* T = new AdjacencyList(v, false);
 	Graph::edge* edges = g->getEdges();
-	int e = g->edgesCount();
 	Graph::edge tmp;
+	int* treeID = new int[v];
+	for (int i = 0; i < v; i++) {
+		treeID[i] = i;
+	}
+	int totalcost = 0;
+	int e = g->edgesCount();
+	MinHeap* q = new MinHeap(e);
 	for (int i = 0; i < e; i++) {
 		q->push(edges[i]);
+		//cout << q->top().from << " " << q->top().to << " " << q->top().weight << endl;
 	}
 	while (T->edgesCount() < v - 1 && !q->empty()) {
 		tmp = q->top();
-		if (T->getEdge(tmp.from, tmp.to) == -1) {
+		if (treeID[tmp.from] != treeID[tmp.to]) {
+			//cout << tmp.from << " " << tmp.to  << " " <<  tmp.weight<< endl;
 			T->addEdge(tmp.from, tmp.to, tmp.weight);
+			for (int i = 0; i < v; i++) {
+				if (i == tmp.to) continue;
+				if (treeID[i] == treeID[tmp.to]) {
+					//cout << "treeID[" << i << "] " << treeID[i] << "->" << treeID[tmp.from] << endl;;
+					treeID[i] = treeID[tmp.from];
+				}
+			}
+			treeID[tmp.to] = treeID[tmp.from];
+			totalcost += tmp.weight;
 		}
 		q->pop();
 	}
+	delete q;
+	delete[] treeID;
+	cout << "Total MST cost: " << totalcost << endl;
 	return T;
 }
 
@@ -395,10 +438,12 @@ DoubleLinkedList* GraphProcessor::pathDijkstra(AdjacencyList* g, int from, int t
 		}
 		else node = -1;
 	}
+	cout << "Total cost of a path: " << distance[to] << endl;
 	delete[] distance;
 	delete[] predecessor;
 	delete[] visited;
 	delete vQueue;
+	
 	return res;
 
 }
@@ -447,14 +492,17 @@ DoubleLinkedList* GraphProcessor::pathBellmanFord(AdjacencyList* g, int from, in
 		return res;
 	}
 	int node = to;
+	
 
 	while (node != -1) {
 		res->addFirst(node);
+		
 		node = predecessors[node];
 	}
-
+	cout << "Total cost of a path: " << costs[to] << endl;
 	delete[] costs;
 	delete[] predecessors;
+	
 	return res;
 }
 
